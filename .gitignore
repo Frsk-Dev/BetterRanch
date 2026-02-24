@@ -1,0 +1,4 @@
+.env
+betterranch.db
+__pycache__/
+*.pyc
