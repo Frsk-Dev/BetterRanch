@@ -18,7 +18,6 @@
             --accent:     #8c1a1a;
             --accent-dim: #721515;
             --bg:         #09090b;
-            --surface:    #111113;
             --border:     #1c1c1f;
             --text:       #fafafa;
             --muted:      #71717a;
@@ -26,15 +25,14 @@
         }
 
         html, body {
-            height: 100%;
+            height: 100vh;
+            overflow: hidden;
         }
 
         body {
             font-family: "Inter", -apple-system, sans-serif;
             background: var(--bg);
             color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
         }
 
         /* ── Nav ── */
@@ -49,9 +47,9 @@
             justify-content: space-between;
             padding: 0 2.5rem;
             height: 60px;
-            background: rgba(9, 9, 11, 0.8);
+            background: rgba(9, 9, 11, 0.7);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
         .nav-logo {
@@ -86,27 +84,31 @@
 
         /* ── Hero ── */
         .hero {
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            text-align: center;
-            padding: 6rem 1.5rem 4rem;
+            padding: 0 10vw;
             position: relative;
+
+            /* Background image with left-to-right black fade overlay */
+            background-image:
+                linear-gradient(
+                    to right,
+                    #09090b        0%,
+                    #09090b        35%,
+                    rgba(9,9,11,0.75) 55%,
+                    rgba(9,9,11,0.1)  80%,
+                    transparent    100%
+                ),
+                url('/static/images/hero-bg.jpg');
+            background-size: cover;
+            background-position: center right;
+            background-repeat: no-repeat;
         }
 
-        /* Radial glow behind hero text */
-        .hero::before {
-            content: "";
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 700px;
-            height: 400px;
-            background: radial-gradient(ellipse, rgba(140, 26, 26, 0.18) 0%, transparent 70%);
-            pointer-events: none;
+        .hero-content {
+            max-width: 560px;
         }
 
         .hero-eyebrow {
@@ -125,20 +127,19 @@
         .hero-eyebrow::after {
             content: "";
             display: block;
-            width: 28px;
+            width: 24px;
             height: 1px;
             background: var(--accent);
-            opacity: 0.5;
+            opacity: 0.6;
         }
 
         h1 {
-            font-size: clamp(2.75rem, 7vw, 5rem);
+            font-size: clamp(2.5rem, 5vw, 4.25rem);
             font-weight: 800;
             line-height: 1.05;
             letter-spacing: -0.04em;
             color: var(--text);
-            max-width: 720px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
 
         h1 em {
@@ -147,19 +148,17 @@
         }
 
         .hero-sub {
-            font-size: 1.05rem;
+            font-size: 1rem;
             color: var(--muted);
-            max-width: 480px;
             line-height: 1.75;
-            margin-bottom: 2.75rem;
+            margin-bottom: 2.5rem;
         }
 
         .hero-actions {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.875rem;
             flex-wrap: wrap;
-            justify-content: center;
         }
 
         .btn {
@@ -167,9 +166,9 @@
             align-items: center;
             gap: 0.5rem;
             font-family: inherit;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             font-weight: 600;
-            padding: 0.7rem 1.6rem;
+            padding: 0.7rem 1.5rem;
             border-radius: 8px;
             text-decoration: none;
             cursor: pointer;
@@ -203,42 +202,38 @@
         .stats-strip {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 3rem;
-            margin-top: 5rem;
-            padding-top: 3rem;
-            border-top: 1px solid var(--border);
-            width: 100%;
-            max-width: 600px;
+            gap: 2.5rem;
+            margin-top: 4rem;
+            padding-top: 2.5rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
             flex-wrap: wrap;
         }
 
-        .stat {
-            text-align: center;
-        }
-
         .stat-value {
-            font-size: 1.75rem;
+            font-size: 1.6rem;
             font-weight: 800;
             letter-spacing: -0.04em;
             color: var(--text);
         }
 
         .stat-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted);
-            margin-top: 0.25rem;
+            margin-top: 0.2rem;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.07em;
         }
 
         /* ── Footer ── */
         footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             text-align: center;
-            padding: 1.5rem;
+            padding: 1rem;
             color: var(--subtle);
-            font-size: 0.78rem;
-            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
         }
     </style>
 </head>
@@ -253,33 +248,35 @@
     </nav>
 
     <section class="hero">
-        <div class="hero-eyebrow">Discord Bot</div>
+        <div class="hero-content">
+            <div class="hero-eyebrow">Discord Bot</div>
 
-        <h1>Ranch stats,<br>on <em>autopilot.</em></h1>
+            <h1>Ranch stats,<br>on <em>autopilot.</em></h1>
 
-        <p class="hero-sub">
-            BetterRanch automatically captures every egg run, milk collection,
-            cattle trade, and camp contribution — then surfaces it all through
-            clean slash commands.
-        </p>
+            <p class="hero-sub">
+                BetterRanch automatically captures every egg run, milk collection,
+                cattle trade, and camp contribution — then surfaces it all through
+                clean slash commands.
+            </p>
 
-        <div class="hero-actions">
-            <a href="#" class="btn btn-primary">Add to Discord</a>
-            <a href="https://github.com/Frsk-Development/BetterRanch" target="_blank" class="btn btn-ghost">View on GitHub</a>
-        </div>
-
-        <div class="stats-strip">
-            <div class="stat">
-                <div class="stat-value">11</div>
-                <div class="stat-label">Slash Commands</div>
+            <div class="hero-actions">
+                <a href="#" class="btn btn-primary">Add to Discord</a>
+                <a href="https://github.com/Frsk-Development/BetterRanch" target="_blank" class="btn btn-ghost">View on GitHub</a>
             </div>
-            <div class="stat">
-                <div class="stat-value">Multi</div>
-                <div class="stat-label">Guild Support</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Setup Required</div>
+
+            <div class="stats-strip">
+                <div class="stat">
+                    <div class="stat-value">11</div>
+                    <div class="stat-label">Slash Commands</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">Multi</div>
+                    <div class="stat-label">Guild Support</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Setup Required</div>
+                </div>
             </div>
         </div>
     </section>
