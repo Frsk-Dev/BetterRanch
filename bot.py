@@ -1,5 +1,4 @@
 import logging
-import os
 
 import discord
 from discord.ext import commands
@@ -16,11 +15,6 @@ class BetterRanchBot(commands.Bot):
         intents.message_content = True
         super().__init__(command_prefix="!br", intents=intents)
 
-        ranch_str = os.getenv("RANCH_CHANNEL_ID", "")
-        camp_str  = os.getenv("CAMP_CHANNEL_ID", "")
-        self.ranch_channel_id: int | None = int(ranch_str) if ranch_str.isdigit() else None
-        self.camp_channel_id:  int | None = int(camp_str)  if camp_str.isdigit()  else None
-
     async def setup_hook(self) -> None:
         db.init_db()
 
@@ -32,21 +26,29 @@ class BetterRanchBot(commands.Bot):
 
     async def on_ready(self) -> None:
         logger.info(f"BetterRanch online as {self.user} (ID: {self.user.id})")
-        logger.info(f"Ranch channel : {self.ranch_channel_id or 'not set'}")
-        logger.info(f"Camp channel  : {self.camp_channel_id  or 'not set'}")
+        logger.info(f"Serving {len(self.guilds)} guild(s).")
 
         await self.change_presence(
             activity=discord.Activity(type=discord.ActivityType.watching, name="the ranch")
         )
 
     async def on_message(self, message: discord.Message) -> None:
-        # Ignore our own messages.
+        # Ignore our own messages and DMs.
         if message.author == self.user:
             return
 
-        if not message.embeds:
+        if not message.embeds or not message.guild:
             return
 
+        guild_id = str(message.guild.id)
+        config = db.get_guild_config(guild_id)
+
+        # Silently ignore guilds that haven't run /setup yet.
+        if not config:
+            return
+
+        ranch_channel_id = int(config["ranch_channel_id"]) if config["ranch_channel_id"] else None
+        camp_channel_id  = int(config["camp_channel_id"])  if config["camp_channel_id"]  else None
         channel_id = message.channel.id
 
         for embed in message.embeds:
@@ -54,7 +56,7 @@ class BetterRanchBot(commands.Bot):
                 continue
 
             # Ranch channel — title is the event type, player is in the description.
-            if self.ranch_channel_id and channel_id == self.ranch_channel_id:
+            if ranch_channel_id and channel_id == ranch_channel_id:
                 event = event_parser.parse_embed(embed.title, embed.description)
                 if event:
                     stored = db.insert_event(
@@ -63,17 +65,18 @@ class BetterRanchBot(commands.Bot):
                         value=event.value,
                         quantity=event.quantity,
                         message_id=str(message.id),
+                        guild_id=guild_id,
                     )
                     if stored:
                         logger.info(
                             f"RANCH  {event.event_type:<14} | {event.player_name:<16} | "
-                            f"value={event.value}  qty={event.quantity}"
+                            f"value={event.value}  qty={event.quantity}  guild={guild_id}"
                         )
                 else:
                     logger.debug(f"RANCH  unrecognised embed: '{embed.title}'")
 
             # Camp channel — title is the player name, detail is in the description.
-            elif self.camp_channel_id and channel_id == self.camp_channel_id:
+            elif camp_channel_id and channel_id == camp_channel_id:
                 event = event_parser.parse_camp_embed(embed.title, embed.description)
                 if event:
                     stored = db.insert_event(
@@ -82,11 +85,12 @@ class BetterRanchBot(commands.Bot):
                         value=event.value,
                         quantity=event.quantity,
                         message_id=str(message.id),
+                        guild_id=guild_id,
                     )
                     if stored:
                         logger.info(
                             f"CAMP   {event.event_type:<14} | {event.player_name:<16} | "
-                            f"value={event.value}"
+                            f"value={event.value}  guild={guild_id}"
                         )
                 else:
                     logger.debug(f"CAMP   unrecognised embed: '{embed.title}'")

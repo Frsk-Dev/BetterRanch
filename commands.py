@@ -13,32 +13,50 @@ logger = logging.getLogger("betterranch")
 def _log_cmd(interaction: discord.Interaction, **kwargs) -> None:
     """Log a slash command invocation with its parameters."""
     params = "  ".join(f"{k}={v}" for k, v in kwargs.items() if v is not None)
-    logger.info(f"CMD  /{interaction.command.name:<18} | {interaction.user} | {params}")
+    logger.info(f"CMD  /{interaction.command.name:<18} | {interaction.user} | guild={interaction.guild_id} | {params}")
 
 
 async def _require_ranch_channel(interaction: discord.Interaction) -> bool:
-    """Return True if the interaction is in the ranch channel, otherwise send an error."""
-    ranch_id = interaction.client.ranch_channel_id
-    if ranch_id and interaction.channel.id != ranch_id:
+    """Return True if the interaction is in the configured ranch channel, otherwise send an error."""
+    config = db.get_guild_config(str(interaction.guild_id))
+    if not config or not config["ranch_channel_id"]:
+        await interaction.response.send_message(
+            "This server hasn't been set up yet. An admin needs to run `/setup` first.",
+            ephemeral=True,
+        )
+        return False
+
+    ranch_id = int(config["ranch_channel_id"])
+    if interaction.channel.id != ranch_id:
         ch = interaction.guild.get_channel(ranch_id)
         mention = ch.mention if ch else f"<#{ranch_id}>"
         await interaction.response.send_message(
             f"Ranch commands can only be used in {mention}.", ephemeral=True
         )
         return False
+
     return True
 
 
 async def _require_camp_channel(interaction: discord.Interaction) -> bool:
-    """Return True if the interaction is in the camp channel, otherwise send an error."""
-    camp_id = interaction.client.camp_channel_id
-    if camp_id and interaction.channel.id != camp_id:
+    """Return True if the interaction is in the configured camp channel, otherwise send an error."""
+    config = db.get_guild_config(str(interaction.guild_id))
+    if not config or not config["camp_channel_id"]:
+        await interaction.response.send_message(
+            "This server hasn't been set up yet. An admin needs to run `/setup` first.",
+            ephemeral=True,
+        )
+        return False
+
+    camp_id = int(config["camp_channel_id"])
+    if interaction.channel.id != camp_id:
         ch = interaction.guild.get_channel(camp_id)
         mention = ch.mention if ch else f"<#{camp_id}>"
         await interaction.response.send_message(
             f"Camp commands can only be used in {mention}.", ephemeral=True
         )
         return False
+
     return True
 
 
@@ -74,7 +92,7 @@ async def _ranch_player_ac(
     interaction: discord.Interaction,
     current: str,
 ) -> list[app_commands.Choice[str]]:
-    names = db.get_player_names(_RANCH_TYPES)
+    names = db.get_player_names(_RANCH_TYPES, guild_id=str(interaction.guild_id))
     return [
         app_commands.Choice(name=name, value=name)
         for name in names
@@ -86,7 +104,7 @@ async def _camp_player_ac(
     interaction: discord.Interaction,
     current: str,
 ) -> list[app_commands.Choice[str]]:
-    names = db.get_player_names(_CAMP_TYPES)
+    names = db.get_player_names(_CAMP_TYPES, guild_id=str(interaction.guild_id))
     return [
         app_commands.Choice(name=name, value=name)
         for name in names
@@ -99,6 +117,50 @@ async def _camp_player_ac(
 # ---------------------------------------------------------------------------
 
 def setup_commands(bot: discord.ext.commands.Bot) -> None:
+
+    # ------------------------------------------------------------------
+    # /setup  (admin only — configure ranch and camp channels)
+    # ------------------------------------------------------------------
+    @bot.tree.command(name="setup", description="Configure ranch and camp channels for this server (requires Manage Server)")
+    @app_commands.describe(
+        ranch_channel="The channel where ranch events are posted",
+        camp_channel="The channel where camp events are posted",
+    )
+    async def setup_cmd(
+        interaction: discord.Interaction,
+        ranch_channel: Optional[discord.TextChannel] = None,
+        camp_channel: Optional[discord.TextChannel] = None,
+    ) -> None:
+        if not interaction.user.guild_permissions.manage_guild:
+            await interaction.response.send_message(
+                "You need **Manage Server** permission to run `/setup`.", ephemeral=True
+            )
+            return
+
+        if not ranch_channel and not camp_channel:
+            await interaction.response.send_message(
+                "Provide at least one channel to configure.", ephemeral=True
+            )
+            return
+
+        # Preserve existing values for any channel not explicitly provided.
+        existing = db.get_guild_config(str(interaction.guild_id))
+        ranch_id = str(ranch_channel.id) if ranch_channel else (existing["ranch_channel_id"] if existing else None)
+        camp_id  = str(camp_channel.id)  if camp_channel  else (existing["camp_channel_id"]  if existing else None)
+
+        db.upsert_guild_config(str(interaction.guild_id), ranch_id, camp_id)
+        migrated = db.migrate_null_events(str(interaction.guild_id))
+        logger.info(f"CMD  /setup             | guild={interaction.guild_id} | ranch={ranch_id}  camp={camp_id}  migrated={migrated}")
+
+        lines = ["**BetterRanch configured!**"]
+        if ranch_id:
+            lines.append(f"Ranch channel → <#{ranch_id}>")
+        if camp_id:
+            lines.append(f"Camp channel  → <#{camp_id}>")
+        if migrated:
+            lines.append(f"Migrated **{migrated}** existing events to this server.")
+
+        await interaction.response.send_message("\n".join(lines), ephemeral=True)
 
     # ------------------------------------------------------------------
     # /eggs
@@ -117,7 +179,8 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_ranch_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        rows = db.get_collection_stats("eggs", period, player)
+        guild_id = str(interaction.guild_id)
+        rows = db.get_collection_stats("eggs", period, player, guild_id)
         logger.info(f"CMD  /eggs             → {len(rows)} player(s) returned")
         embed = discord.Embed(
             title=f"🥚  Egg Collection — {_label(period)}",
@@ -162,7 +225,8 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_ranch_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        rows = db.get_collection_stats("milk", period, player)
+        guild_id = str(interaction.guild_id)
+        rows = db.get_collection_stats("milk", period, player, guild_id)
         logger.info(f"CMD  /milk             → {len(rows)} player(s) returned")
         embed = discord.Embed(
             title=f"🥛  Milk Collection — {_label(period)}",
@@ -207,7 +271,8 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_ranch_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        data = db.get_ledger_stats(period, player)
+        guild_id = str(interaction.guild_id)
+        data = db.get_ledger_stats(period, player, guild_id)
         deposits    = data["deposit"]
         withdrawals = data["withdrawal"]
 
@@ -266,7 +331,8 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_ranch_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        data  = db.get_cattle_stats(period, player)
+        guild_id = str(interaction.guild_id)
+        data  = db.get_cattle_stats(period, player, guild_id)
         buys  = data["cattle_buy"]
         sells = data["cattle_sell"]
 
@@ -327,7 +393,8 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_ranch_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        data = db.get_summary_stats(period, player)
+        guild_id = str(interaction.guild_id)
+        data = db.get_summary_stats(period, player, guild_id)
 
         def v(key: str) -> float:
             return _val(data[key], "total")
@@ -375,7 +442,8 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_camp_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        rows = db.get_collection_stats("materials", period, player)
+        guild_id = str(interaction.guild_id)
+        rows = db.get_collection_stats("materials", period, player, guild_id)
         logger.info(f"CMD  /materials        → {len(rows)} player(s) returned")
         embed = discord.Embed(
             title=f"🪵  Camp Materials — {_label(period)}",
@@ -420,7 +488,8 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_camp_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        rows = db.get_collection_stats("supplies", period, player)
+        guild_id = str(interaction.guild_id)
+        rows = db.get_collection_stats("supplies", period, player, guild_id)
         logger.info(f"CMD  /supplies         → {len(rows)} player(s) returned")
         embed = discord.Embed(
             title=f"📦  Camp Supplies — {_label(period)}",
@@ -465,7 +534,8 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_camp_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        stock_rows = db.get_sales_stats(["stock_sale"], period, player)
+        guild_id = str(interaction.guild_id)
+        stock_rows = db.get_sales_stats(["stock_sale"], period, player, guild_id)
         logger.info(f"CMD  /stock            → {len(stock_rows)} player(s) returned")
 
         total_qty     = sum(r["total_qty"]   for r in stock_rows)
@@ -518,9 +588,10 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         if not await _require_camp_channel(interaction):
             return
         _log_cmd(interaction, period=period, player=player)
-        mat_rows   = db.get_collection_stats("materials",   period, player)
-        sup_rows   = db.get_collection_stats("supplies",    period, player)
-        stock_rows = db.get_sales_stats(["stock_sale"],     period, player)
+        guild_id = str(interaction.guild_id)
+        mat_rows   = db.get_collection_stats("materials",   period, player, guild_id)
+        sup_rows   = db.get_collection_stats("supplies",    period, player, guild_id)
+        stock_rows = db.get_sales_stats(["stock_sale"],     period, player, guild_id)
 
         total_mat     = sum(r["total"]       for r in mat_rows)
         total_sup     = sum(r["total"]       for r in sup_rows)
@@ -580,10 +651,10 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         name="scan",
         description="Scan this channel's history to import past events (requires Manage Server)",
     )
-    @app_commands.describe(limit="How many messages to scan (default 500, max 5000)")
+    @app_commands.describe(limit="How many messages to scan (default: entire channel history)")
     async def scan_cmd(
         interaction: discord.Interaction,
-        limit: int = 500,
+        limit: Optional[int] = None,
     ) -> None:
         if not interaction.user.guild_permissions.manage_guild:
             await interaction.response.send_message(
@@ -591,13 +662,21 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
             )
             return
 
-        limit = min(max(limit, 1), 5000)
+        if limit is not None:
+            limit = max(limit, 1)
         await interaction.response.defer(ephemeral=True)
 
-        # Use the camp parser if this is the camp channel, otherwise ranch parser.
-        is_camp = (interaction.client.camp_channel_id == interaction.channel.id)
+        guild_id = str(interaction.guild_id)
+        config = db.get_guild_config(guild_id)
+
+        # Determine whether this is the camp or ranch channel.
+        is_camp = (
+            config is not None
+            and config["camp_channel_id"] is not None
+            and int(config["camp_channel_id"]) == interaction.channel.id
+        )
         channel_label = "CAMP" if is_camp else "RANCH"
-        logger.info(f"CMD  /scan  started — channel={channel_label}  limit={limit}  by={interaction.user}")
+        logger.info(f"CMD  /scan  started — channel={channel_label}  limit={limit or 'all'}  by={interaction.user}  guild={guild_id}")
 
         processed = 0
         added = 0
@@ -619,6 +698,7 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
                         value=event.value,
                         quantity=event.quantity,
                         message_id=str(message.id),
+                        guild_id=guild_id,
                     )
                     if was_new:
                         added += 1
