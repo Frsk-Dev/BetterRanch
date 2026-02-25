@@ -224,6 +224,23 @@
             letter-spacing: 0.07em;
         }
 
+        /* ── Nav user ── */
+        .nav-user {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .nav-user img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+
         /* ── Footer ── */
         footer {
             position: fixed;
@@ -243,7 +260,14 @@
         <a href="/" class="nav-logo">Better<span>Ranch</span></a>
         <div class="nav-links">
             <a href="https://github.com/Frsk-Development/BetterRanch" target="_blank">GitHub</a>
-            <a href="#" class="btn btn-primary" style="padding: 0.45rem 1.1rem; font-size: 0.8rem;">Add to Discord</a>
+            {% if user %}
+                <a href="/dashboard" class="nav-user">
+                    <img src="{{ user.avatar_url }}" alt="avatar">
+                    {{ user.username }}
+                </a>
+            {% else %}
+                <a href="/login" class="btn btn-primary" style="padding: 0.45rem 1.1rem; font-size: 0.8rem;">Login with Discord</a>
+            {% endif %}
         </div>
     </nav>
 
