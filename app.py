@@ -10,6 +10,12 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET", "dev-secret-change-me")
+app.config.update(
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=False,
+    PERMANENT_SESSION_LIFETIME=600,
+)
 
 DISCORD_CLIENT_ID     = os.getenv("DISCORD_CLIENT_ID")
 DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
@@ -41,6 +47,7 @@ def index():
 @app.route("/login")
 def login():
     state = secrets.token_urlsafe(16)
+    session.permanent = True
     session["oauth_state"] = state
     params = {
         "client_id":     DISCORD_CLIENT_ID,
