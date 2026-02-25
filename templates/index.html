@@ -4,186 +4,283 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BetterRanch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #0f1117;
-            color: #e0e0e0;
-            min-height: 100vh;
+        :root {
+            --accent:     #c8860a;
+            --accent-dim: #a06808;
+            --bg:         #09090b;
+            --surface:    #111113;
+            --border:     #1c1c1f;
+            --text:       #fafafa;
+            --muted:      #71717a;
+            --subtle:     #3f3f46;
         }
 
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Nav ── */
         nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1.25rem 2.5rem;
-            border-bottom: 1px solid #1e2130;
+            padding: 0 2.5rem;
+            height: 60px;
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
         }
 
         .nav-logo {
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: 700;
-            color: #c8860a;
+            color: var(--text);
             text-decoration: none;
+            letter-spacing: -0.02em;
         }
 
-        .nav-link {
-            color: #9ca3af;
+        .nav-logo span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--muted);
             text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.15s;
         }
 
-        .nav-link:hover {
-            color: #e0e0e0;
+        .nav-links a:hover {
+            color: var(--text);
         }
 
+        /* ── Hero ── */
         .hero {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 6rem 2rem 4rem;
+            padding: 6rem 1.5rem 4rem;
+            position: relative;
         }
 
-        .hero-badge {
-            display: inline-block;
-            background: #1e2130;
-            border: 1px solid #2e3250;
-            color: #c8860a;
-            font-size: 0.8rem;
+        /* Radial glow behind hero text */
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(200, 134, 10, 0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            padding: 0.3rem 0.85rem;
-            border-radius: 999px;
-            margin-bottom: 1.5rem;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.75rem;
+        }
+
+        .hero-eyebrow::before,
+        .hero-eyebrow::after {
+            content: "";
+            display: block;
+            width: 28px;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.5;
         }
 
         h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-size: clamp(2.75rem, 7vw, 5rem);
             font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 1.25rem;
-            color: #ffffff;
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+            color: var(--text);
+            max-width: 720px;
+            margin-bottom: 1.5rem;
         }
 
-        h1 span {
-            color: #c8860a;
+        h1 em {
+            font-style: normal;
+            color: var(--accent);
         }
 
-        .hero p {
-            font-size: 1.1rem;
-            color: #9ca3af;
-            max-width: 540px;
-            line-height: 1.7;
-            margin-bottom: 2.5rem;
+        .hero-sub {
+            font-size: 1.05rem;
+            color: var(--muted);
+            max-width: 480px;
+            line-height: 1.75;
+            margin-bottom: 2.75rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.7rem 1.6rem;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
         }
 
         .btn-primary {
-            display: inline-block;
-            background: #c8860a;
+            background: var(--accent);
             color: #fff;
-            font-size: 1rem;
-            font-weight: 600;
-            padding: 0.8rem 2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.1s;
         }
 
         .btn-primary:hover {
-            background: #a86f08;
+            background: var(--accent-dim);
             transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(200, 134, 10, 0.3);
         }
 
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.25rem;
-            max-width: 900px;
-            margin: 4rem auto;
-            padding: 0 2rem;
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
         }
 
-        .feature-card {
-            background: #161922;
-            border: 1px solid #1e2130;
-            border-radius: 12px;
-            padding: 1.5rem;
+        .btn-ghost:hover {
+            color: var(--text);
+            border-color: var(--subtle);
         }
 
-        .feature-icon {
+        /* ── Stats strip ── */
+        .stats-strip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 5rem;
+            padding-top: 3rem;
+            border-top: 1px solid var(--border);
+            width: 100%;
+            max-width: 600px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
             font-size: 1.75rem;
-            margin-bottom: 0.75rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: var(--text);
         }
 
-        .feature-card h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 0.5rem;
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
 
-        .feature-card p {
-            font-size: 0.875rem;
-            color: #6b7280;
-            line-height: 1.6;
-        }
-
+        /* ── Footer ── */
         footer {
             text-align: center;
-            padding: 2rem;
-            color: #374151;
-            font-size: 0.8rem;
-            border-top: 1px solid #1e2130;
+            padding: 1.5rem;
+            color: var(--subtle);
+            font-size: 0.78rem;
+            border-top: 1px solid var(--border);
         }
     </style>
 </head>
 <body>
 
     <nav>
-        <a href="/" class="nav-logo">🤠 BetterRanch</a>
-        <a href="https://github.com/Frsk-Development/BetterRanch" class="nav-link" target="_blank">GitHub</a>
+        <a href="/" class="nav-logo">Better<span>Ranch</span></a>
+        <div class="nav-links">
+            <a href="https://github.com/Frsk-Development/BetterRanch" target="_blank">GitHub</a>
+            <a href="#" class="btn btn-primary" style="padding: 0.45rem 1.1rem; font-size: 0.8rem;">Add to Discord</a>
+        </div>
     </nav>
 
     <section class="hero">
-        <div class="hero-badge">Discord Bot</div>
-        <h1>Track your ranch,<br><span>effortlessly.</span></h1>
-        <p>
-            BetterRanch automatically logs ranch and camp activity from your Discord server
-            and gives you clean stats on eggs, milk, cattle, materials, and more.
-        </p>
-        <a href="#" class="btn-primary">Add to Discord</a>
-    </section>
+        <div class="hero-eyebrow">Discord Bot</div>
 
-    <section class="features">
-        <div class="feature-card">
-            <div class="feature-icon">🥚</div>
-            <h3>Ranch Tracking</h3>
-            <p>Automatically records egg collection, milk runs, cash deposits, and cattle transactions.</p>
+        <h1>Ranch stats,<br>on <em>autopilot.</em></h1>
+
+        <p class="hero-sub">
+            BetterRanch automatically captures every egg run, milk collection,
+            cattle trade, and camp contribution — then surfaces it all through
+            clean slash commands.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#" class="btn btn-primary">Add to Discord</a>
+            <a href="https://github.com/Frsk-Development/BetterRanch" target="_blank" class="btn btn-ghost">View on GitHub</a>
         </div>
-        <div class="feature-card">
-            <div class="feature-icon">🏕️</div>
-            <h3>Camp Tracking</h3>
-            <p>Tracks material donations, supply deliveries, and stock sales per player.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">📊</div>
-            <h3>Leaderboards</h3>
-            <p>See who's pulling their weight with per-player stats filtered by day, week, or all time.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⚙️</div>
-            <h3>Easy Setup</h3>
-            <p>One <code>/setup</code> command to point the bot at your channels. Works across multiple servers.</p>
+
+        <div class="stats-strip">
+            <div class="stat">
+                <div class="stat-value">11</div>
+                <div class="stat-label">Slash Commands</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">Multi</div>
+                <div class="stat-label">Guild Support</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Setup Required</div>
+            </div>
         </div>
     </section>
 
