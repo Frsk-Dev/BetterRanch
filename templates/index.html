@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BetterRanch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f1117;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 2.5rem;
+            border-bottom: 1px solid #1e2130;
+        }
+
+        .nav-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #c8860a;
+            text-decoration: none;
+        }
+
+        .nav-link {
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #e0e0e0;
+        }
+
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 6rem 2rem 4rem;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: #1e2130;
+            border: 1px solid #2e3250;
+            color: #c8860a;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.3rem 0.85rem;
+            border-radius: 999px;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.25rem;
+            color: #ffffff;
+        }
+
+        h1 span {
+            color: #c8860a;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #9ca3af;
+            max-width: 540px;
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: #c8860a;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-primary:hover {
+            background: #a86f08;
+            transform: translateY(-1px);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .feature-card {
+            background: #161922;
+            border: 1px solid #1e2130;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .feature-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #374151;
+            font-size: 0.8rem;
+            border-top: 1px solid #1e2130;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="/" class="nav-logo">🤠 BetterRanch</a>
+        <a href="https://github.com/Frsk-Development/BetterRanch" class="nav-link" target="_blank">GitHub</a>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">Discord Bot</div>
+        <h1>Track your ranch,<br><span>effortlessly.</span></h1>
+        <p>
+            BetterRanch automatically logs ranch and camp activity from your Discord server
+            and gives you clean stats on eggs, milk, cattle, materials, and more.
+        </p>
+        <a href="#" class="btn-primary">Add to Discord</a>
+    </section>
+
+    <section class="features">
+        <div class="feature-card">
+            <div class="feature-icon">🥚</div>
+            <h3>Ranch Tracking</h3>
+            <p>Automatically records egg collection, milk runs, cash deposits, and cattle transactions.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🏕️</div>
+            <h3>Camp Tracking</h3>
+            <p>Tracks material donations, supply deliveries, and stock sales per player.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Leaderboards</h3>
+            <p>See who's pulling their weight with per-player stats filtered by day, week, or all time.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚙️</div>
+            <h3>Easy Setup</h3>
+            <p>One <code>/setup</code> command to point the bot at your channels. Works across multiple servers.</p>
+        </div>
+    </section>
+
+    <footer>
+        &copy; 2026 BetterRanch &mdash; Frsk Development
+    </footer>
+
+</body>
+</html>
