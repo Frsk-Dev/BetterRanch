@@ -112,6 +112,26 @@ async def _camp_player_ac(
     ][:25]
 
 
+async def _remove_player_ac(
+    interaction: discord.Interaction,
+    current: str,
+) -> list[app_commands.Choice[str]]:
+    all_types = _RANCH_TYPES + _CAMP_TYPES
+    names = db.get_player_names(all_types, guild_id=str(interaction.guild_id))
+    choices = []
+    for name in names:
+        # Resolve <@ID> to a readable display name for the dropdown.
+        if name.startswith("<@") and name.endswith(">"):
+            user_id = int(name[2:-1])
+            member = interaction.guild.get_member(user_id)
+            display = member.display_name if member else name
+        else:
+            display = name
+        if current.lower() in display.lower():
+            choices.append(app_commands.Choice(name=display, value=name))
+    return choices[:25]
+
+
 # ---------------------------------------------------------------------------
 # Register all slash commands onto the bot tree
 # ---------------------------------------------------------------------------
@@ -711,3 +731,32 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
             f"Scan complete! Scanned **{processed}** messages, imported **{added}** new events.",
             ephemeral=True,
         )
+
+    # ------------------------------------------------------------------
+    # /remove_player  (admin only — delete all events for a member)
+    # ------------------------------------------------------------------
+    @bot.tree.command(name="remove_player", description="Remove all recorded events for a player (requires Manage Server)")
+    @app_commands.describe(player="The player to remove from the records")
+    @app_commands.autocomplete(player=_remove_player_ac)
+    async def remove_player_cmd(
+        interaction: discord.Interaction,
+        player: str,
+    ) -> None:
+        if not interaction.user.guild_permissions.manage_guild:
+            await interaction.response.send_message(
+                "You need **Manage Server** permission to run `/remove_player`.", ephemeral=True
+            )
+            return
+
+        guild_id = str(interaction.guild_id)
+        deleted = db.delete_player_events(player, guild_id)
+        logger.info(f"CMD  /remove_player    | guild={guild_id} | player={player!r} | deleted={deleted} rows")
+
+        if deleted == 0:
+            await interaction.response.send_message(
+                f"No records found for **{player}**.", ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                f"Removed **{deleted}** event(s) for {player}.", ephemeral=True
+            )

@@ -269,6 +269,16 @@ def get_sales_stats(
         ).fetchall()
 
 
+def delete_player_events(player_name: str, guild_id: str) -> int:
+    """Delete all events for a player in a guild. Returns number of rows deleted."""
+    with _conn() as conn:
+        cursor = conn.execute(
+            "DELETE FROM events WHERE LOWER(player_name) = LOWER(?) AND guild_id = ?",
+            (player_name, guild_id),
+        )
+        return cursor.rowcount
+
+
 def get_player_names(
     event_types: list[str] = None,
     guild_id: Optional[str] = None,

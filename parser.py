@@ -15,38 +15,41 @@ class RanchEvent:
 
 
 # Each entry: embed title -> (event_type, compiled regex)
-# Groups differ per pattern — see _parse() for extraction logic.
+# Groups differ per pattern — see parse_embed() for extraction logic.
 #
-# Pattern notes:
-#   (?:@\S+|<@\d+>)   — Discord mention in either @name or <@id> form
-#   (?:\s+\d+)?        — optional number after the mention (e.g. Discord user ID)
-#   (\S+)              — player name: any non-whitespace (allows hyphens, dots, etc.)
+# Pattern notes (eggs/milk/deposit/withdrawal):
+#   @.+?(\d{15,})  — "@Display Name 101079..." form: non-greedy match handles
+#                    multi-word display names; captures the snowflake ID (15+ digits)
+#   <@(\d+)>       — "<@123456789>" form: captures user ID as group 2
+#   \s+\S.*?\s+    — game player name skipped (handles single or multi-word names)
+#
+# Cattle patterns use a different embed format with no Discord mention.
 _PATTERNS: dict[str, tuple[str, re.Pattern]] = {
     "Eggs Added": (
         "eggs",
         re.compile(
-            r"(?:@\S+|<@\d+>)(?:\s+\d+)?\s+(\S+)\s+Added Eggs to ranch id \d+\s*:\s*(\d+)",
+            r"(?:@.+?(\d{15,})|<@(\d+)>)\s+\S.*?\s+Added Eggs to ranch id \d+\s*:\s*(\d+)",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Milk Added": (
         "milk",
         re.compile(
-            r"(?:@\S+|<@\d+>)(?:\s+\d+)?\s+(\S+)\s+Added Milk to ranch id \d+\s*:\s*(\d+)",
+            r"(?:@.+?(\d{15,})|<@(\d+)>)\s+\S.*?\s+Added Milk to ranch id \d+\s*:\s*(\d+)",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Cash Withdrawal": (
         "withdrawal",
         re.compile(
-            r"(?:@\S+|<@\d+>)(?:\s+\d+)?\s+(\S+)\s+Withdrawal of ([\d.]+)\s*\$",
+            r"(?:@.+?(\d{15,})|<@(\d+)>)\s+\S.*?\s+Withdrawal of ([\d.]+)\s*\$",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Cash Deposit": (
         "deposit",
         re.compile(
-            r"(?:@\S+|<@\d+>)(?:\s+\d+)?\s+(\S+)\s+Deposit of ([\d.]+)\s*\$",
+            r"(?:@.+?(\d{15,})|<@(\d+)>)\s+\S.*?\s+Deposit of ([\d.]+)\s*\$",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
@@ -111,12 +114,14 @@ def parse_embed(title: str, description: str) -> Optional[RanchEvent]:
     groups = match.groups()
 
     if event_type in ("eggs", "milk"):
-        # groups: (player_name, amount)
-        return RanchEvent(event_type, groups[0], float(groups[1]))
+        # groups: (id_from_@format, id_from_<@>_format, amount)
+        user_id = groups[0] or groups[1]
+        return RanchEvent(event_type, f"<@{user_id}>", float(groups[2]))
 
     if event_type in ("withdrawal", "deposit"):
-        # groups: (player_name, amount)
-        return RanchEvent(event_type, groups[0], float(groups[1]))
+        # groups: (id_from_@format, id_from_<@>_format, amount)
+        user_id = groups[0] or groups[1]
+        return RanchEvent(event_type, f"<@{user_id}>", float(groups[2]))
 
     if event_type in ("cattle_buy", "cattle_sell"):
         # groups: (player_name, quantity, total_value)
