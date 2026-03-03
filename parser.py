@@ -1,6 +1,9 @@
+import logging
 import re
 from dataclasses import dataclass
 from typing import Optional
+
+logger = logging.getLogger("betterranch")
 
 
 @dataclass
@@ -13,46 +16,51 @@ class RanchEvent:
 
 # Each entry: embed title -> (event_type, compiled regex)
 # Groups differ per pattern — see _parse() for extraction logic.
+#
+# Pattern notes:
+#   (?:@\S+|<@\d+>)   — Discord mention in either @name or <@id> form
+#   (?:\s+\d+)?        — optional number after the mention (e.g. Discord user ID)
+#   (\S+)              — player name: any non-whitespace (allows hyphens, dots, etc.)
 _PATTERNS: dict[str, tuple[str, re.Pattern]] = {
     "Eggs Added": (
         "eggs",
         re.compile(
-            r"(?:@\w+|<@\d+>)\s+\d+\s+(\w+)\s+Added Eggs to ranch id \d+\s*:\s*(\d+)",
+            r"(?:@\S+|<@\d+>)(?:\s+\d+)?\s+(\S+)\s+Added Eggs to ranch id \d+\s*:\s*(\d+)",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Milk Added": (
         "milk",
         re.compile(
-            r"(?:@\w+|<@\d+>)\s+\d+\s+(\w+)\s+Added Milk to ranch id \d+\s*:\s*(\d+)",
+            r"(?:@\S+|<@\d+>)(?:\s+\d+)?\s+(\S+)\s+Added Milk to ranch id \d+\s*:\s*(\d+)",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Cash Withdrawal": (
         "withdrawal",
         re.compile(
-            r"(?:@\w+|<@\d+>)\s+\d+\s+(\w+)\s+Withdrawal of ([\d.]+)\s*\$",
+            r"(?:@\S+|<@\d+>)(?:\s+\d+)?\s+(\S+)\s+Withdrawal of ([\d.]+)\s*\$",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Cash Deposit": (
         "deposit",
         re.compile(
-            r"(?:@\w+|<@\d+>)\s+\d+\s+(\w+)\s+Deposit of ([\d.]+)\s*\$",
+            r"(?:@\S+|<@\d+>)(?:\s+\d+)?\s+(\S+)\s+Deposit of ([\d.]+)\s*\$",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Bought Cattle": (
         "cattle_buy",
         re.compile(
-            r"Player (\w+) bought (\d+) cow cattle for ([\d.]+)\$",
+            r"Player (\S+) bought (\d+) cow cattle for ([\d.]+)\$",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Cattle Sale": (
         "cattle_sell",
         re.compile(
-            r"Player (\w+) sold (\d+) cow for ([\d.]+)\$",
+            r"Player (\S+) sold (\d+) cow for ([\d.]+)\$",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
@@ -97,6 +105,7 @@ def parse_embed(title: str, description: str) -> Optional[RanchEvent]:
     event_type, pattern = entry
     match = pattern.search(description)
     if not match:
+        logger.warning(f"PARSE  title matched '{title}' but regex failed — description: {description!r}")
         return None
 
     groups = match.groups()
