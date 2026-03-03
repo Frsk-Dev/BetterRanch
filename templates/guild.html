@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ guild.name }} — BetterRanch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent:  #8c1a1a;
+            --bg:      #09090b;
+            --surface: #111113;
+            --border:  #1c1c1f;
+            --text:    #fafafa;
+            --muted:   #71717a;
+            --subtle:  #3f3f46;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── Nav ── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2.5rem;
+            height: 60px;
+            background: rgba(9,9,11,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-logo span { color: var(--accent); }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-user {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .nav-user img { width: 28px; height: 28px; border-radius: 50%; }
+
+        .nav-logout {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .nav-logout:hover { color: var(--text); }
+
+        /* ── Page layout ── */
+        .page-wrap { padding-top: 60px; min-height: 100vh; }
+
+        /* ── Guild header ── */
+        .guild-header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .back-link:hover { color: var(--text); }
+
+        .guild-header-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .guild-identity {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .guild-header-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .guild-header-letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .guild-header-name {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* ── Tab bar ── */
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            padding: 0 2.5rem;
+        }
+
+        .tab-link {
+            display: inline-block;
+            padding: 0.75rem 1.125rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+
+        .tab-link:hover { color: var(--text); }
+
+        .tab-link.active {
+            color: var(--text);
+            border-bottom-color: var(--accent);
+        }
+
+        /* ── Content area ── */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2.5rem 4rem;
+        }
+
+        /* ── Setup banner ── */
+        .setup-banner {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.75rem;
+            font-size: 0.875rem;
+        }
+
+        .setup-banner p { color: var(--muted); margin-top: 0.25rem; }
+        .setup-banner strong { color: var(--text); }
+
+        /* ── Analytics top bar ── */
+        .analytics-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.75rem;
+        }
+
+        .kpi-group-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--subtle);
+        }
+
+        /* ── Period selector ── */
+        .period-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.2rem;
+        }
+
+        .period-btn {
+            display: inline-block;
+            padding: 0.35rem 0.875rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .period-btn:hover { color: var(--text); }
+
+        .period-btn.active {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        /* ── KPI grids ── */
+        .kpi-section { margin-bottom: 1.75rem; }
+
+        .kpi-section-header {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--subtle);
+            margin-bottom: 0.625rem;
+        }
+
+        .kpi-grid {
+            display: grid;
+            gap: 0.875rem;
+        }
+
+        .kpi-grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .kpi-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+        /* ── KPI card ── */
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.125rem 1.25rem;
+        }
+
+        .kpi-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value {
+            font-size: 1.625rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 0.3rem;
+        }
+
+        .kpi-value.positive { color: #22c55e; }
+        .kpi-value.negative { color: #ef4444; }
+
+        .kpi-meta {
+            font-size: 0.725rem;
+            color: var(--muted);
+        }
+
+        /* ── Bottom 2-col layout ── */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        /* ── Shared panel ── */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.875rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            gap: 1rem;
+        }
+
+        .panel-title {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        /* ── Leaderboard ── */
+        .cat-tabs {
+            display: flex;
+            gap: 0.15rem;
+            flex-wrap: wrap;
+        }
+
+        .cat-tab {
+            padding: 0.275rem 0.625rem;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--muted);
+            background: transparent;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .cat-tab:hover { color: var(--text); }
+
+        .cat-tab.active {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .lb-table { padding: 0.5rem 0; }
+
+        .lb-row {
+            display: grid;
+            grid-template-columns: 2.25rem 1fr 5.5rem;
+            align-items: center;
+            column-gap: 0.75rem;
+            padding: 0.5rem 1.25rem;
+            transition: background 0.1s;
+        }
+
+        .lb-row:hover { background: rgba(255,255,255,0.025); }
+
+        .lb-rank {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--subtle);
+            text-align: center;
+        }
+
+        .lb-info { overflow: hidden; }
+
+        .lb-name {
+            font-size: 0.875rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lb-bar-track {
+            height: 3px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 0.3rem;
+        }
+
+        .lb-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+
+        .lb-val {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .lb-empty {
+            padding: 2rem 1.25rem;
+            font-size: 0.8125rem;
+            color: var(--subtle);
+        }
+
+        /* ── Activity feed ── */
+        .act-scroll {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .act-scroll::-webkit-scrollbar { width: 3px; }
+        .act-scroll::-webkit-scrollbar-track { background: transparent; }
+        .act-scroll::-webkit-scrollbar-thumb { background: var(--subtle); border-radius: 2px; }
+
+        .act-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .act-row:last-child { border-bottom: none; }
+
+        .act-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .act-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .act-player {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .act-type {
+            font-size: 0.6875rem;
+            color: var(--muted);
+        }
+
+        .act-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.1rem;
+            flex-shrink: 0;
+        }
+
+        .act-val {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .act-time {
+            font-size: 0.6875rem;
+            color: var(--muted);
+        }
+
+        .act-empty {
+            padding: 2.5rem 1.25rem;
+            font-size: 0.8125rem;
+            color: var(--subtle);
+            text-align: center;
+        }
+
+        /* ── Settings ── */
+        .settings-section { max-width: 540px; }
+
+        .saved-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #22c55e;
+            margin-bottom: 2rem;
+        }
+
+        .scan-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(99,102,241,0.1);
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #a5b4fc;
+            margin-bottom: 2rem;
+        }
+
+        .scan-banner-text { flex: 1; }
+        .scan-banner-detail { font-size: 0.75rem; color: #818cf8; margin-top: 0.15rem; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(165,180,252,0.3);
+            border-top-color: #a5b4fc;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+
+        .form-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.375rem;
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            padding: 0.6rem 0.875rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: border-color 0.15s;
+            appearance: none;
+        }
+
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--subtle);
+        }
+
+        .form-select option { background: #1a1a1d; }
+
+        .form-select-wrap { position: relative; }
+
+        .form-select-wrap::after {
+            content: "▾";
+            position: absolute;
+            right: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            pointer-events: none;
+            font-size: 0.75rem;
+        }
+
+        .channel-no-access {
+            font-size: 0.8125rem;
+            color: var(--muted);
+            padding: 0.6rem 0.875rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-save {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.65rem 1.5rem;
+            background: var(--accent);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-save:hover { background: #721515; transform: translateY(-1px); }
+
+        .no-manage {
+            font-size: 0.875rem;
+            color: var(--muted);
+            padding: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .bot-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .bot-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .bot-status.online  .bot-status-dot { background: #22c55e; }
+        .bot-status.offline .bot-status-dot { background: #ef4444; }
+        .bot-status.online  { color: #86efac; }
+        .bot-status.offline { color: #fca5a5; }
+
+        .warn-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.25);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #fca5a5;
+            margin-bottom: 1.5rem;
+        }
+
+        .scan-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .scan-section-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.375rem;
+        }
+
+        .btn-scan {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 0.75rem;
+            padding: 0.65rem 1.5rem;
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-scan:hover {
+            border-color: var(--subtle);
+            background: rgba(255,255,255,0.03);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 860px) {
+            .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); }
+            .kpi-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .bottom-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="/" class="nav-logo">Better<span>Ranch</span></a>
+        <div class="nav-right">
+            <div class="nav-user">
+                <img src="{{ user.avatar_url }}" alt="avatar">
+                {{ user.username }}
+            </div>
+            <a href="/logout" class="nav-logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-wrap">
+
+        <div class="guild-header">
+            <a href="/dashboard" class="back-link">&#8592; Back</a>
+            <div class="guild-header-divider"></div>
+            <div class="guild-identity">
+                {% if guild.icon_url %}
+                    <img src="{{ guild.icon_url }}" alt="" class="guild-header-icon">
+                {% else %}
+                    <div class="guild-header-letter">{{ guild.name[0] | upper }}</div>
+                {% endif %}
+                <span class="guild-header-name">{{ guild.name }}</span>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <a href="/guild/{{ guild.id }}?period={{ period }}" class="tab-link {% if tab == 'analytics' %}active{% endif %}">Analytics</a>
+            <a href="/guild/{{ guild.id }}?tab=settings" class="tab-link {% if tab == 'settings' %}active{% endif %}">Settings</a>
+        </div>
+
+        <div class="content">
+
+            {# ── Analytics ── #}
+            {% if tab == 'analytics' %}
+
+                {% if not config %}
+                    <div class="setup-banner">
+                        <strong>This server hasn't been configured yet.</strong>
+                        <p>Run <strong>/setup</strong> in your Discord server to link channels, then <strong>/scan</strong> to import history.</p>
+                    </div>
+                {% endif %}
+
+                <!-- Top bar: period selector -->
+                <div class="analytics-topbar">
+                    <span class="kpi-group-label">Overview</span>
+                    <div class="period-selector">
+                        <a href="/guild/{{ guild.id }}?period=alltime" class="period-btn {% if period == 'alltime' %}active{% endif %}">All Time</a>
+                        <a href="/guild/{{ guild.id }}?period=week"    class="period-btn {% if period == 'week'    %}active{% endif %}">This Week</a>
+                        <a href="/guild/{{ guild.id }}?period=day"     class="period-btn {% if period == 'day'     %}active{% endif %}">Today</a>
+                    </div>
+                </div>
+
+                {# Precompute values #}
+                {% set deposits       = (summary.deposit.total       or 0) %}
+                {% set withdrawals    = (summary.withdrawal.total    or 0) %}
+                {% set net_cash       = deposits - withdrawals %}
+                {% set cattle_buy_val = (summary.cattle_buy.total    or 0) %}
+                {% set cattle_sell_val= (summary.cattle_sell.total   or 0) %}
+                {% set cattle_buy_qty = (summary.cattle_buy.total_qty  or 0) %}
+                {% set cattle_sell_qty= (summary.cattle_sell.total_qty or 0) %}
+                {% set cattle_profit  = cattle_sell_val - cattle_buy_val %}
+
+                <!-- Ranch KPIs -->
+                <div class="kpi-section">
+                    <div class="kpi-section-header">Ranch</div>
+                    <div class="kpi-grid kpi-grid-4">
+
+                        <div class="kpi-card">
+                            <div class="kpi-label">Eggs Collected</div>
+                            <div class="kpi-value">{{ (summary.eggs.total or 0) | fmt_num }}</div>
+                            <div class="kpi-meta">{{ (summary.eggs.count or 0) | fmt_num }} collections</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-label">Milk Collected</div>
+                            <div class="kpi-value">{{ (summary.milk.total or 0) | fmt_num }}</div>
+                            <div class="kpi-meta">{{ (summary.milk.count or 0) | fmt_num }} collections</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-label">Net Cash Flow</div>
+                            <div class="kpi-value {% if net_cash >= 0 %}positive{% else %}negative{% endif %}">
+                                {% if net_cash >= 0 %}+{% endif %}{{ net_cash | fmt_money }}
+                            </div>
+                            <div class="kpi-meta">{{ deposits | fmt_money }} in / {{ withdrawals | fmt_money }} out</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-label">Cattle Profit</div>
+                            <div class="kpi-value {% if cattle_profit >= 0 %}positive{% else %}negative{% endif %}">
+                                {% if cattle_profit >= 0 %}+{% endif %}{{ cattle_profit | fmt_money }}
+                            </div>
+                            <div class="kpi-meta">{{ cattle_buy_qty | fmt_num }} bought / {{ cattle_sell_qty | fmt_num }} sold</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Camp KPIs -->
+                <div class="kpi-section">
+                    <div class="kpi-section-header">Camp</div>
+                    <div class="kpi-grid kpi-grid-3">
+
+                        <div class="kpi-card">
+                            <div class="kpi-label">Materials</div>
+                            <div class="kpi-value">{{ (summary.materials.total or 0) | fmt_num }}</div>
+                            <div class="kpi-meta">{{ (summary.materials.count or 0) | fmt_num }} donations</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-label">Supplies</div>
+                            <div class="kpi-value">{{ (summary.supplies.total or 0) | fmt_num }}</div>
+                            <div class="kpi-meta">{{ (summary.supplies.count or 0) | fmt_num }} deliveries</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-label">Stock Sales</div>
+                            <div class="kpi-value">{{ (summary.stock_sale.total or 0) | fmt_money }}</div>
+                            <div class="kpi-meta">{{ (summary.stock_sale.count or 0) | fmt_num }} sales</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Leaderboard + Activity side by side -->
+                <div class="bottom-grid">
+
+                    <!-- Leaderboard panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span class="panel-title">Leaderboard</span>
+                            <div class="cat-tabs">
+                                <button class="cat-tab active" data-target="lb-eggs">Eggs</button>
+                                <button class="cat-tab" data-target="lb-milk">Milk</button>
+                                <button class="cat-tab" data-target="lb-deposits">Deposits</button>
+                                <button class="cat-tab" data-target="lb-materials">Materials</button>
+                                <button class="cat-tab" data-target="lb-supplies">Supplies</button>
+                            </div>
+                        </div>
+
+                        <!-- Eggs -->
+                        <div id="lb-eggs" class="lb-table">
+                            {% if top_eggs %}
+                                {% set mx = top_eggs[0].total %}
+                                {% for row in top_eggs %}
+                                    <div class="lb-row">
+                                        <span class="lb-rank">#{{ loop.index }}</span>
+                                        <div class="lb-info">
+                                            <div class="lb-name">{{ row.player_name }}</div>
+                                            <div class="lb-bar-track">
+                                                <div class="lb-bar-fill" style="width:{{ ((row.total/mx)*100)|int }}%;background:#f59e0b"></div>
+                                            </div>
+                                        </div>
+                                        <span class="lb-val">{{ row.total | fmt_num }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="lb-empty">No egg data for this period.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Milk -->
+                        <div id="lb-milk" class="lb-table" style="display:none">
+                            {% if top_milk %}
+                                {% set mx = top_milk[0].total %}
+                                {% for row in top_milk %}
+                                    <div class="lb-row">
+                                        <span class="lb-rank">#{{ loop.index }}</span>
+                                        <div class="lb-info">
+                                            <div class="lb-name">{{ row.player_name }}</div>
+                                            <div class="lb-bar-track">
+                                                <div class="lb-bar-fill" style="width:{{ ((row.total/mx)*100)|int }}%;background:#3b82f6"></div>
+                                            </div>
+                                        </div>
+                                        <span class="lb-val">{{ row.total | fmt_num }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="lb-empty">No milk data for this period.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Deposits -->
+                        <div id="lb-deposits" class="lb-table" style="display:none">
+                            {% if top_deposits %}
+                                {% set mx = top_deposits[0].total %}
+                                {% for row in top_deposits %}
+                                    <div class="lb-row">
+                                        <span class="lb-rank">#{{ loop.index }}</span>
+                                        <div class="lb-info">
+                                            <div class="lb-name">{{ row.player_name }}</div>
+                                            <div class="lb-bar-track">
+                                                <div class="lb-bar-fill" style="width:{{ ((row.total/mx)*100)|int }}%;background:#22c55e"></div>
+                                            </div>
+                                        </div>
+                                        <span class="lb-val">{{ row.total | fmt_money }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="lb-empty">No deposit data for this period.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Materials -->
+                        <div id="lb-materials" class="lb-table" style="display:none">
+                            {% if top_materials %}
+                                {% set mx = top_materials[0].total %}
+                                {% for row in top_materials %}
+                                    <div class="lb-row">
+                                        <span class="lb-rank">#{{ loop.index }}</span>
+                                        <div class="lb-info">
+                                            <div class="lb-name">{{ row.player_name }}</div>
+                                            <div class="lb-bar-track">
+                                                <div class="lb-bar-fill" style="width:{{ ((row.total/mx)*100)|int }}%;background:#a855f7"></div>
+                                            </div>
+                                        </div>
+                                        <span class="lb-val">{{ row.total | fmt_num }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="lb-empty">No materials data for this period.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Supplies -->
+                        <div id="lb-supplies" class="lb-table" style="display:none">
+                            {% if top_supplies %}
+                                {% set mx = top_supplies[0].total %}
+                                {% for row in top_supplies %}
+                                    <div class="lb-row">
+                                        <span class="lb-rank">#{{ loop.index }}</span>
+                                        <div class="lb-info">
+                                            <div class="lb-name">{{ row.player_name }}</div>
+                                            <div class="lb-bar-track">
+                                                <div class="lb-bar-fill" style="width:{{ ((row.total/mx)*100)|int }}%;background:#06b6d4"></div>
+                                            </div>
+                                        </div>
+                                        <span class="lb-val">{{ row.total | fmt_num }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="lb-empty">No supplies data for this period.</div>
+                            {% endif %}
+                        </div>
+
+                    </div><!-- /leaderboard panel -->
+
+                    <!-- Activity panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span class="panel-title">Recent Activity</span>
+                        </div>
+                        <div class="act-scroll">
+                            {% if recent %}
+                                {% for event in recent %}
+                                    <div class="act-row">
+                                        <div class="act-dot" style="background:{{ event.event_type | event_color }}"></div>
+                                        <div class="act-body">
+                                            <span class="act-player">{{ event.player_name }}</span>
+                                            <span class="act-type">{{ event.event_type | event_label }}</span>
+                                        </div>
+                                        <div class="act-right">
+                                            <span class="act-val">
+                                                {% if event.event_type in ('deposit','withdrawal','cattle_buy','cattle_sell','stock_sale') %}
+                                                    {{ event.value | fmt_money }}
+                                                {% else %}
+                                                    {{ event.value | fmt_num }}
+                                                {% endif %}
+                                            </span>
+                                            <span class="act-time">{{ event.timestamp | time_ago }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="act-empty">No activity recorded yet.</div>
+                            {% endif %}
+                        </div>
+                    </div><!-- /activity panel -->
+
+                </div><!-- /bottom-grid -->
+
+            {# ── Settings ── #}
+            {% else %}
+
+                <div class="settings-section">
+
+                    <div class="bot-status {% if bot_connected %}online{% else %}offline{% endif %}">
+                        <span class="bot-status-dot"></span>
+                        {% if bot_connected %}Bot connected{% else %}Bot not connected{% endif %}
+                    </div>
+
+                    {% if not bot_connected %}
+                        <div class="warn-banner">&#9888; The bot is not connected — scanning is unavailable. Start the bot and refresh this page.</div>
+                    {% endif %}
+
+                    {% if saved and not scanning %}
+                        <div class="saved-banner">&#10003; Channel settings saved successfully.</div>
+                    {% endif %}
+
+                    <div id="scan-banner" class="scan-banner" style="display:none">
+                        <div class="spinner"></div>
+                        <div class="scan-banner-text">
+                            <div id="scan-banner-title">Scanning channel history…</div>
+                            <div class="scan-banner-detail" id="scan-banner-detail">Starting up…</div>
+                        </div>
+                    </div>
+
+                    <div id="scan-done-banner" class="saved-banner" style="display:none">
+                        &#10003; <span id="scan-done-text">Scan complete.</span>
+                    </div>
+
+                    {% if guild.can_manage %}
+                        <form method="POST" action="/guild/{{ guild.id }}/settings">
+
+                            <div class="form-group">
+                                <label class="form-label" for="ranch_channel_id">Ranch Channel</label>
+                                <p class="form-hint">The channel where ranch events are posted (eggs, milk, deposits, cattle).</p>
+                                {% if channels %}
+                                    <div class="form-select-wrap">
+                                        <select name="ranch_channel_id" id="ranch_channel_id" class="form-select">
+                                            <option value="">— None —</option>
+                                            {% for ch in channels %}
+                                                <option value="{{ ch.id }}" {% if config and config.ranch_channel_id == ch.id %}selected{% endif %}># {{ ch.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% else %}
+                                    <div class="channel-no-access">Channel list unavailable — make sure the bot is in this server.</div>
+                                    <input type="text" name="ranch_channel_id" id="ranch_channel_id" class="form-input"
+                                           placeholder="Channel ID" value="{{ config.ranch_channel_id if config else '' }}">
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="camp_channel_id">Camp Channel</label>
+                                <p class="form-hint">The channel where camp events are posted (materials, supplies, stock).</p>
+                                {% if channels %}
+                                    <div class="form-select-wrap">
+                                        <select name="camp_channel_id" id="camp_channel_id" class="form-select">
+                                            <option value="">— None —</option>
+                                            {% for ch in channels %}
+                                                <option value="{{ ch.id }}" {% if config and config.camp_channel_id == ch.id %}selected{% endif %}># {{ ch.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% else %}
+                                    <input type="text" name="camp_channel_id" id="camp_channel_id" class="form-input"
+                                           placeholder="Channel ID" value="{{ config.camp_channel_id if config else '' }}">
+                                {% endif %}
+                            </div>
+
+                            <button type="submit" class="btn-save">Save Changes</button>
+                        </form>
+
+                        {% if config and (config.ranch_channel_id or config.camp_channel_id) %}
+                            <div class="scan-section">
+                                <div class="scan-section-label">Manual Scan</div>
+                                <p class="form-hint">Re-scan configured channels to import any messages the bot may have missed.</p>
+                                <form method="POST" action="/guild/{{ guild.id }}/scan">
+                                    <button type="submit" class="btn-scan">Scan Channels Now</button>
+                                </form>
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="no-manage">
+                            You need the <strong>Manage Server</strong> permission in this server to change channel settings.
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div><!-- /content -->
+    </div><!-- /page-wrap -->
+
+    <script>
+        // Leaderboard tabs
+        document.querySelectorAll('.cat-tab').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.cat-tab').forEach(function(b) { b.classList.remove('active'); });
+                document.querySelectorAll('.lb-table').forEach(function(t) { t.style.display = 'none'; });
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.target).style.display = '';
+            });
+        });
+
+        // Scan status polling (settings tab only)
+        (function() {
+            var scanBanner = document.getElementById('scan-banner');
+            if (!scanBanner) return; // not on settings tab
+
+            var guildId    = {{ guild.id | tojson }};
+            var scanDetail = document.getElementById('scan-banner-detail');
+            var doneBanner = document.getElementById('scan-done-banner');
+            var doneText   = document.getElementById('scan-done-text');
+            var botBadge   = document.querySelector('.bot-status');
+            var warnBanner = document.querySelector('.warn-banner');
+            var pollTimer  = null;
+            var finished   = false;
+
+            function fmt(n) { return Number(n).toLocaleString(); }
+
+            function poll() {
+                fetch('/guild/' + guildId + '/scan-status', { credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        console.log('[BetterRanch] scan-status:', data);
+
+                        // Update bot connection badge live
+                        if (botBadge) {
+                            if (data.bot_connected) {
+                                botBadge.className = 'bot-status online';
+                                botBadge.innerHTML = '<span class="bot-status-dot"></span> Bot connected';
+                                if (warnBanner) warnBanner.style.display = 'none';
+                            } else {
+                                botBadge.className = 'bot-status offline';
+                                botBadge.innerHTML = '<span class="bot-status-dot"></span> Bot not connected';
+                            }
+                        }
+                        if (data.scanning) {
+                            scanBanner.style.display = 'flex';
+                            doneBanner.style.display = 'none';
+                            scanDetail.textContent = fmt(data.processed) + ' messages scanned — ' + fmt(data.added) + ' events imported';
+                        } else if (data.processed > 0 && !finished) {
+                            finished = true;
+                            clearTimeout(pollTimer);
+                            scanBanner.style.display = 'none';
+                            doneText.textContent = 'Scan complete — ' + fmt(data.added) + ' events imported from ' + fmt(data.processed) + ' messages.';
+                            doneBanner.style.display = 'flex';
+                            return;
+                        }
+                        if (!finished) {
+                            pollTimer = setTimeout(poll, 1500);
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('[BetterRanch] scan-status poll failed:', err);
+                        if (!finished) pollTimer = setTimeout(poll, 3000);
+                    });
+            }
+
+            // Always start polling when on the settings tab so any active/recent scan is shown
+            pollTimer = setTimeout(poll, 500);
+        })();
+    </script>
+
+</body>
+</html>

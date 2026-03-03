@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import discord
@@ -5,6 +6,7 @@ from discord.ext import commands
 
 import database as db
 import parser as event_parser
+import state
 
 logger = logging.getLogger("betterranch")
 
@@ -25,6 +27,8 @@ class BetterRanchBot(commands.Bot):
         logger.info("Slash commands synced to Discord.")
 
     async def on_ready(self) -> None:
+        state.bot_instance = self
+        state.bot_loop = asyncio.get_running_loop()
         logger.info(f"BetterRanch online as {self.user} (ID: {self.user.id})")
         logger.info(f"Serving {len(self.guilds)} guild(s).")
 

@@ -6,6 +6,7 @@ from discord import app_commands
 
 import database as db
 import parser as event_parser
+import scanner
 
 logger = logging.getLogger("betterranch")
 
@@ -669,44 +670,16 @@ def setup_commands(bot: discord.ext.commands.Bot) -> None:
         guild_id = str(interaction.guild_id)
         config = db.get_guild_config(guild_id)
 
-        # Determine whether this is the camp or ranch channel.
         is_camp = (
             config is not None
             and config["camp_channel_id"] is not None
             and int(config["camp_channel_id"]) == interaction.channel.id
         )
-        channel_label = "CAMP" if is_camp else "RANCH"
-        logger.info(f"CMD  /scan  started — channel={channel_label}  limit={limit or 'all'}  by={interaction.user}  guild={guild_id}")
+        logger.info(f"CMD  /scan  started — channel={'CAMP' if is_camp else 'RANCH'}  limit={limit or 'all'}  by={interaction.user}  guild={guild_id}")
 
-        processed = 0
-        added = 0
-
-        async for message in interaction.channel.history(limit=limit, oldest_first=False):
-            for embed in message.embeds:
-                if not embed.title or not embed.description:
-                    continue
-
-                if is_camp:
-                    event = event_parser.parse_camp_embed(embed.title, embed.description)
-                else:
-                    event = event_parser.parse_embed(embed.title, embed.description)
-
-                if event:
-                    was_new = db.insert_event(
-                        event_type=event.event_type,
-                        player_name=event.player_name,
-                        value=event.value,
-                        quantity=event.quantity,
-                        message_id=str(message.id),
-                        guild_id=guild_id,
-                    )
-                    if was_new:
-                        added += 1
-            processed += 1
-            if processed % 100 == 0:
-                logger.info(f"CMD  /scan  progress — scanned={processed}  imported={added}")
-
-        logger.info(f"CMD  /scan  complete — scanned={processed}  imported={added}")
+        processed, added = await scanner.scan_channel(
+            bot, interaction.channel.id, guild_id, is_camp=is_camp, limit=limit
+        )
         await interaction.followup.send(
             f"Scan complete! Scanned **{processed}** messages, imported **{added}** new events.",
             ephemeral=True,

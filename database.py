@@ -236,7 +236,7 @@ def get_summary_stats(
     """Single aggregate row per event type — used by /summary."""
     result = {}
     with _conn() as conn:
-        for etype in ("eggs", "milk", "deposit", "withdrawal", "cattle_buy", "cattle_sell"):
+        for etype in ("eggs", "milk", "deposit", "withdrawal", "cattle_buy", "cattle_sell", "materials", "supplies", "stock_sale"):
             where, params = _where([etype], period, player, guild_id)
             result[etype] = conn.execute(
                 f"""SELECT SUM(value)    AS total,
@@ -266,6 +266,26 @@ def get_sales_stats(
                 GROUP BY LOWER(player_name)
                 ORDER BY total_value DESC""",
             params,
+        ).fetchall()
+
+
+def get_configured_guild_ids() -> list[str]:
+    """Return all guild IDs that have a row in guild_config."""
+    with _conn() as conn:
+        rows = conn.execute("SELECT guild_id FROM guild_config").fetchall()
+        return [r["guild_id"] for r in rows]
+
+
+def get_recent_events(guild_id: str, limit: int = 20) -> list:
+    """Return the most recent events for a guild, newest first."""
+    with _conn() as conn:
+        return conn.execute(
+            """SELECT event_type, player_name, value, quantity, timestamp
+               FROM events
+               WHERE guild_id = ?
+               ORDER BY timestamp DESC
+               LIMIT ?""",
+            (guild_id, limit),
         ).fetchall()
 
 

@@ -28,12 +28,16 @@
         }
 
         nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 2.5rem;
             height: 60px;
-            background: var(--surface);
+            background: rgba(9,9,11,0.85);
+            backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
         }
 
@@ -78,32 +82,174 @@
         .nav-logout:hover { color: var(--text); }
 
         main {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 3rem 2rem;
+            padding: 5rem 2rem 3rem;
+        }
+
+        .page-header {
+            margin-bottom: 2.5rem;
         }
 
         .page-title {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             letter-spacing: -0.03em;
-            margin-bottom: 0.375rem;
+            margin-bottom: 0.25rem;
         }
 
         .page-sub {
             font-size: 0.875rem;
             color: var(--muted);
-            margin-bottom: 2.5rem;
         }
 
-        .placeholder {
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        .guild-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .guild-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+
+        .guild-card:hover {
+            border-color: var(--subtle);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .guild-card-top {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        .guild-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .guild-icon-letter {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .guild-name {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            width: fit-content;
+        }
+
+        .badge-active {
+            background: rgba(34,197,94,0.12);
+            color: #22c55e;
+        }
+
+        .badge-inactive {
+            background: rgba(113,113,122,0.15);
+            color: var(--muted);
+        }
+
+        .badge::before {
+            content: "";
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .guild-card-footer { margin-top: auto; }
+
+        .btn-card {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.55rem 1rem;
+            font-family: inherit;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            border-radius: 8px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-open {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-open:hover { background: #721515; }
+
+        .btn-add {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-add:hover {
+            color: var(--text);
+            border-color: var(--subtle);
+        }
+
+        .empty {
             background: var(--surface);
             border: 1px dashed var(--border);
             border-radius: 12px;
-            padding: 4rem 2rem;
+            padding: 3rem 2rem;
             text-align: center;
             color: var(--subtle);
             font-size: 0.875rem;
+            margin-bottom: 3rem;
         }
     </style>
 </head>
@@ -121,12 +267,63 @@
     </nav>
 
     <main>
-        <h1 class="page-title">Welcome back, {{ user.username }}</h1>
-        <p class="page-sub">Select a server below to view stats or configure channels.</p>
-
-        <div class="placeholder">
-            Guild list coming soon.
+        <div class="page-header">
+            <h1 class="page-title">Your Servers</h1>
+            <p class="page-sub">Select a server to view analytics or configure channels.</p>
         </div>
+
+        <p class="section-label">BetterRanch Active</p>
+        {% if bot_guilds %}
+            <div class="guild-grid">
+                {% for guild in bot_guilds %}
+                <a href="/guild/{{ guild.id }}" class="guild-card">
+                    <div class="guild-card-top">
+                        {% if guild.icon_url %}
+                            <img src="{{ guild.icon_url }}" alt="" class="guild-icon">
+                        {% else %}
+                            <div class="guild-icon-letter">{{ guild.name[0] | upper }}</div>
+                        {% endif %}
+                        <div class="guild-name">{{ guild.name }}</div>
+                    </div>
+                    <span class="badge badge-active">Active</span>
+                    <div class="guild-card-footer">
+                        <span class="btn-card btn-open">Open Dashboard</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">
+                No servers have BetterRanch set up yet.<br>
+                Add the bot to a server below and run <strong>/setup</strong> to get started.
+            </div>
+        {% endif %}
+
+        {% if other_guilds %}
+            <p class="section-label">Add to Server</p>
+            <div class="guild-grid">
+                {% for guild in other_guilds %}
+                <div class="guild-card" style="cursor: default;">
+                    <div class="guild-card-top">
+                        {% if guild.icon_url %}
+                            <img src="{{ guild.icon_url }}" alt="" class="guild-icon">
+                        {% else %}
+                            <div class="guild-icon-letter" style="background: var(--subtle);">{{ guild.name[0] | upper }}</div>
+                        {% endif %}
+                        <div class="guild-name">{{ guild.name }}</div>
+                    </div>
+                    <span class="badge badge-inactive">Not Added</span>
+                    <div class="guild-card-footer">
+                        <a href="https://discord.com/oauth2/authorize?client_id={{ client_id }}&permissions=68608&scope=bot+applications.commands&guild_id={{ guild.id }}"
+                           target="_blank"
+                           class="btn-card btn-add">
+                            Add to Server
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
     </main>
 
 </body>
