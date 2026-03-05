@@ -56,14 +56,14 @@ _PATTERNS: dict[str, tuple[str, re.Pattern]] = {
     "Bought Cattle": (
         "cattle_buy",
         re.compile(
-            r"Player (\S+) bought (\d+) cow cattle for ([\d.]+)\$",
+            r"Player \*\*(.+?)\*\* bought \*\*(\d+)\*\* \*\*cow\*\* cattle for \*\*([\d.]+)\$?\*\*",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
     "Cattle Sale": (
         "cattle_sell",
         re.compile(
-            r"Player (\S+) sold (\d+) cow for ([\d.]+)\$",
+            r"Player (.+?) sold (\d+) cow for ([\d.]+)\$",
             re.DOTALL | re.IGNORECASE,
         ),
     ),
